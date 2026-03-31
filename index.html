@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBA 525 Test 2 Practice Quiz</title>
+<style>
+    /* Applying Moderat font family with fallbacks */
+    body {
+        font-family: 'Moderat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f4f7f6;
+        color: #333;
+        line-height: 1.6;
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    h1 {
+        text-align: center;
+        color: #002d72; /* Subtle nod to corporate strategy */
+    }
+    .quiz-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .question-block {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    .question-text {
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+    .options {
+        list-style-type: none;
+        padding: 0;
+    }
+    .options li {
+        margin-bottom: 8px;
+    }
+    label {
+        cursor: pointer;
+        display: flex;
+        align-items: baseline;
+    }
+    input[type="radio"] {
+        margin-right: 10px;
+    }
+    .feedback {
+        display: none;
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.95em;
+    }
+    .feedback.correct {
+        background-color: #d4edda;
+        color: #155724;
+        display: block;
+    }
+    .feedback.incorrect {
+        background-color: #f8d7da;
+        color: #721c24;
+        display: block;
+    }
+    button {
+        background-color: #0056b3;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        font-size: 1em;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: 'Moderat', sans-serif;
+        margin-right: 10px;
+    }
+    button:hover {
+        background-color: #004494;
+    }
+    #results {
+        margin-top: 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+
+    <h1>GBA 525 Test 2 Study Tool</h1>
+    <div class="quiz-container">
+        <div id="quiz"></div>
+        <button id="submit-btn" onclick="gradeQuiz()">Submit Answers</button>
+        <button id="retry-btn" onclick="loadQuiz()" style="display:none;">Try Another 10 Questions</button>
+        <div id="results"></div>
+    </div>
+
+<script>
+    // Full Question Bank derived from Test 2 Hints and Blue Ocean Slides
+    const questionBank = [
+        {
+            q: "A firm that derives revenues from a mixture of businesses linked to its primary business activity is engaging in what?",
+            options: ["Related Diversification", "Unrelated Diversification", "Taper Integration", "Horizontal Diversification"],
+            a: 0,
+            feedback: "Related Diversification is when a firm derives revenues from a mixture of businesses that are linked to the primary business activity[cite: 72]."
+        },
+        {
+            q: "What strategic tool evaluates a company's competitive position by assigning importance to various Success Factors and comparing performance?",
+            options: ["Strategy Canvas", "Weighted Competitive Strength Assessment", "SOAR Model", "BCG Matrix"],
+            a: 1,
+            feedback: "The Weighted Competitive Strength Assessment is a strategic tool used to evaluate a company's position by assigning importance to Success Factors[cite: 124, 125]."
+        },
+        {
+            q: "According to Handy’s Clover, what is another name for this organizational structure?",
+            options: ["Smile Strategy", "Four Actions Framework", "Shamrock Organisation", "Platform Strategy"],
+            a: 2,
+            feedback: "Handy's Clover is also known as the Shamrock Organisation[cite: 117, 119]."
+        },
+        {
+            q: "In the SMILE Strategy, what does the 'M' stand for?",
+            options: ["Maximum profit", "Medium in experience", "Multiple markets", "Managerial hubris"],
+            a: 1,
+            feedback: "SMILE stands for Small in size, Medium in experience, Large in aspiration, Extra-Large Potential[cite: 120, 121]."
+        },
+        {
+            q: "Which way of thinking strategically asks 'how', breaks things apart, and goes down the funnel?",
+            options: ["Analytical Thinking", "Second-Level Thinking", "180-Degree Thinking", "Systems Thinking"],
+            a: 0,
+            feedback: "Analytical Thinking asks 'how', breaks things apart, and goes down the funnel[cite: 271, 273, 274, 275]."
+        },
+        {
+            q: "A behavior characterized by self-interest seeking with guile, such as withholding cooperation, is called what?",
+            options: ["Asymmetrical Information", "Opportunism", "Managerial Hubris", "Creative Destruction"],
+            a: 1,
+            feedback: "Opportunism is a behavior characterized by self-interest seeking with guile, and 'hold up' is one form of it[cite: 58, 59]."
+        },
+        {
+            q: "What framework is based on the idea that each segment of the industry life cycle is dominated by a different customer group?",
+            options: ["Creative Destruction", "Crossing the Chasm", "BCG Matrix", "Build-Borrow-Buy Framework"],
+            a: 1,
+            feedback: "Crossing the Chasm is a framework based on the idea that each segment of the industry life cycle is dominated by a different customer segment[cite: 42, 43]."
+        },
+        {
+            q: "When innovation takes place and legacy firms risk being destroyed by new creative entrants, this is known as:",
+            options: ["Disruptive Innovation", "Creative Destruction", "Tacit Knowledge", "Value Innovation"],
+            a: 1,
+            feedback: "Creative Destruction occurs as innovation takes place and legacy firms are at risk of being destroyed by new entrants[cite: 39, 40]."
+        },
+        {
+            q: "Combining existing technologies with existing markets is called what type of innovation?",
+            options: ["Radical Innovation", "Disruptive Innovation", "Architectural Innovation", "Incremental Innovation"],
+            a: 3,
+            feedback: "Incremental Innovation uses existing tech in an existing market[cite: 49]."
+        },
+        {
+            q: "New technologies introduced into existing markets is called what type of innovation?",
+            options: ["Radical Innovation", "Disruptive Innovation", "Architectural Innovation", "Incremental Innovation"],
+            a: 1,
+            feedback: "Disruptive Innovation involves using new technology in an existing market[cite: 47]."
+        },
+        {
+            q: "The graphical depiction of a company's relative performance across industry key success factors is the:",
+            options: ["Strategy Canvas", "BCG Matrix", "Value Curve", "Four Actions Grid"],
+            a: 0,
+            feedback: "The Strategy Canvas is a graphical depiction of a company's relative performance vis a vis its competitors across key Success Factors[cite: 35, 36]."
+        },
+        {
+            q: "What defines an enterprise that creates value by matching external producers and consumers via an infrastructure?",
+            options: ["Joint Venture", "Platform Business", "Taper Integration", "Non-equity Alliance"],
+            a: 1,
+            feedback: "A Platform Business creates value by matching external producers and consumers via an enterprise-managed infrastructure[cite: 51]."
+        },
+        {
+            q: "A strategy where a firm is backwardly integrated but also relies on outside market firms for supplies is called:",
+            options: ["Vertical Integration", "Taper Integration", "Strategic Alliance", "Horizontal Diversification"],
+            a: 1,
+            feedback: "Taper Integration involves orchestrating value activities by mixing in-house and outside suppliers/distributors[cite: 66, 67, 68]."
+        },
+        {
+            q: "In the BCG Matrix, what is a business unit with high relative market share and high market growth?",
+            options: ["Cash Cow", "Dog", "Star", "Question Mark"],
+            a: 2,
+            feedback: "A Star has High relative market share and High market growth[cite: 76, 77, 78]."
+        },
+        {
+            q: "What perspective treats decision making like stock options, breaking larger decisions into smaller ones?",
+            options: ["Real-Options Perspective", "Build-Borrow-Buy Framework", "Systems Thinking", "Second-Level Thinking"],
+            a: 0,
+            feedback: "The Real-Options Perspective treats decision making like stock options, breaking large decisions down[cite: 88, 89]."
+        },
+        {
+            q: "Knowledge that cannot be codified and requires active participation to acquire is:",
+            options: ["Tacit Knowledge", "Asymmetrical Information", "Core Competency", "Value Driver"],
+            a: 0,
+            feedback: "Tacit Knowledge cannot be codified and is acquired only through active participation[cite: 91, 92]."
+        },
+        {
+            q: "In Blue Ocean strategy, value innovation affects both a company's cost structure and its what?",
+            options: ["Market share", "Value proposition to buyers", "Tacit knowledge", "Supplier power"],
+            a: 1,
+            feedback: "Value innovation favorably affects both a company's cost structure and its value proposition to buyers[cite: 108]."
+        },
+        {
+            q: "What framework includes the steps Eliminate, Reduce, Raise, Create?",
+            options: ["Build-Borrow-Buy", "Four Actions Framework", "SOAR Model", "BCG Matrix"],
+            a: 1,
+            feedback: "The Four Actions Framework consists of Eliminate, Reduce, Raise, Create[cite: 105, 106]."
+        },
+        {
+            q: "Which strategic thinking style involves 'Negative Capability' and taking the competitor's point of view?",
+            options: ["Analytical Thinking", "Second-Level Thinking", "180-Degree Thinking", "Systems Thinking"],
+            a: 2,
+            feedback: "180-Degree Thinking takes the competitor's point of view and relies on Negative Capability[cite: 314, 315, 319]."
+        },
+        {
+            q: "Which strategic thinking style focuses on 'why', goes up the funnel, and focuses on purpose?",
+            options: ["Analytical Thinking", "Second-Level Thinking", "180-Degree Thinking", "Systems Thinking"],
+            a: 3,
+            feedback: "Systems Thinking asks 'why', goes up the funnel, and focuses on purpose[cite: 334, 335, 336, 337]."
+        },
+        {
+            q: "Companies that pay homage to the industrial Lords and follow established rules are called:",
+            options: ["Rule Makers", "Rule Takers", "Rule Breakers", "Laggards"],
+            a: 1,
+            feedback: "Rule Takers are companies that pay homage to the industrial Lords[cite: 128, 372]."
+        },
+        {
+            q: "In the SOAR model, what do the letters stand for?",
+            options: ["Strengths, Opportunities, Aspirations, Results", "Strategy, Operations, Actions, Results", "Strengths, Objectives, Alliances, Returns", "Scope, Output, Asymmetry, Revenue"],
+            a: 0,
+            feedback: "SOAR stands for Strengths, Opportunities, Aspirations, Results[cite: 122, 123]."
+        },
+        {
+            q: "What is the primary goal of a differentiation strategy?",
+            options: ["Decrease unit cost", "Increase perceived value so customers pay a higher price", "Match external producers and consumers", "Combine two independent firms"],
+            a: 1,
+            feedback: "The goal of differentiation is to increase perceived value so customers pay a higher price for features[cite: 25]."
+        },
+        {
+            q: "What term describes savings that come from producing two or more outputs at less cost than producing them individually?",
+            options: ["Economies of Scale", "Economies of Scope", "Creative Destruction", "Value Innovation"],
+            a: 1,
+            feedback: "Economies of Scope are savings from producing 2 or more outputs at less cost than individually[cite: 31, 32]."
+        },
+        {
+            q: "What type of alliance involves the creation of an entirely new entity and is generally a long-term solution?",
+            options: ["Non-equity alliances", "Equity alliances", "Joint Ventures", "Taper integration"],
+            a: 2,
+            feedback: "Joint Ventures involve the creation of an entirely new entity and are generally a long-term solution[cite: 63, 65]."
+        }
+    ];
+
+    let currentQuestions = [];
+
+    // Helper function to shuffle an array
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Load quiz with 10 random questions
+    function loadQuiz() {
+        document.getElementById('submit-btn').style.display = 'inline-block';
+        document.getElementById('retry-btn').style.display = 'none';
+        document.getElementById('results').innerHTML = '';
+        
+        const quizContainer = document.getElementById('quiz');
+        quizContainer.innerHTML = '';
+
+        // Pick 10 random questions
+        let shuffledBank = shuffle([...questionBank]);
+        currentQuestions = shuffledBank.slice(0, 10);
+
+        currentQuestions.forEach((qObj, index) => {
+            // Shuffle options but keep track of the correct answer string
+            const correctText = qObj.options[qObj.a];
+            let shuffledOptions = shuffle([...qObj.options]);
+            
+            // Find new index of the correct answer
+            const newCorrectIndex = shuffledOptions.indexOf(correctText);
+            qObj.currentCorrectIndex = newCorrectIndex;
+
+            let questionHTML = `
+                <div class="question-block" id="qblock-${index}">
+                    <div class="question-text">${index + 1}. ${qObj.q}</div>
+                    <ul class="options">
+            `;
+
+            shuffledOptions.forEach((opt, optIndex) => {
+                questionHTML += `
+                    <li>
+                        <label>
+                            <input type="radio" name="q${index}" value="${optIndex}">
+                            ${opt}
+                        </label>
+                    </li>
+                `;
+            });
+
+            questionHTML += `
+                    </ul>
+                    <div class="feedback" id="feedback-${index}"></div>
+                </div>
+            `;
+            quizContainer.innerHTML += questionHTML;
+        });
+    }
+
+    // Grade the quiz
+    function gradeQuiz() {
+        let score = 0;
+        
+        currentQuestions.forEach((qObj, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedbackDiv = document.getElementById(`feedback-${index}`);
+            
+            if (selected) {
+                const selectedVal = parseInt(selected.value);
+                if (selectedVal === qObj.currentCorrectIndex) {
+                    score++;
+                    feedbackDiv.innerHTML = `<strong>Correct!</strong> ${qObj.feedback}`;
+                    feedbackDiv.className = 'feedback correct';
+                } else {
+                    feedbackDiv.innerHTML = `<strong>Incorrect.</strong> The correct answer was: <em>${qObj.options[qObj.currentCorrectIndex]}</em>. ${qObj.feedback}`;
+                    feedbackDiv.className = 'feedback incorrect';
+                }
+            } else {
+                feedbackDiv.innerHTML = `<strong>No answer selected.</strong> The correct answer was: <em>${qObj.options[qObj.currentCorrectIndex]}</em>. ${qObj.feedback}`;
+                feedbackDiv.className = 'feedback incorrect';
+            }
+        });
+
+        document.getElementById('results').innerHTML = `You scored ${score} out of 10!`;
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('retry-btn').style.display = 'inline-block';
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Initialize quiz on load
+    window.onload = loadQuiz;
+</script>
+</body>
+</html>
