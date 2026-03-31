@@ -74,13 +74,15 @@
         background: #ffffff;
         width: 100%;
         max-width: 650px;
+        height: 85vh; /* This fixed height stops the vertical jumping */
+        min-height: 650px;
+        max-height: 850px;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        overflow: hidden;
         display: flex;
         flex-direction: column;
-        max-height: 90vh;
         position: relative;
+        overflow: hidden;
     }
     .header {
         background: #002d72;
@@ -164,6 +166,12 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
+    .option-btn:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+        transform: translateY(-2px);
+    }
     .option-btn.correct {
         background: #d4edda;
         border-color: #28a745;
@@ -192,37 +200,51 @@
         cursor: not-allowed;
         opacity: 0.8;
     }
+    .bottom-panel {
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+        z-index: 10; /* Keeps it above the ripple effect */
+    }
+
     .feedback-container {
-        margin-top: 25px;
-        padding: 18px;
-        border-radius: 10px;
-        display: none;
+        padding: 20px 30px;
         font-size: 0.95em;
         line-height: 1.5;
-        opacity: 0;
-        transform: scale(0.95);
-        transition: all 0.3s ease;
+        display: none;
+        animation: slideUp 0.3s ease-out;
     }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .feedback-container.show {
         display: block;
-        opacity: 1;
-        transform: scale(1);
     }
+
+    /* Make the feedback edge-to-edge to look like a solid dock */
     .feedback-container.success {
         background: #e8f5e9;
         color: #2e7d32;
-        border-left: 5px solid #4caf50;
+        border-bottom: 1px solid #c8e6c9;
     }
+
     .feedback-container.error {
         background: #ffebee;
         color: #c62828;
-        border-left: 5px solid #ef5350;
+        border-bottom: 1px solid #ffcdd2;
     }
+
     .controls {
-        padding: 18px 30px;
+        padding: 15px 30px;
+        min-height: 70px; /* Reserves space so the card doesn't collapse */
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
         background: #f8f9fa;
-        text-align: right;
-        border-top: 1px solid #e9ecef;
     }
     .next-btn {
         background: #002d72;
@@ -272,7 +294,13 @@
         <div id="anim-wrapper" class="fade-enter">
             <div class="question-text" id="question-text">Loading question...</div>
             <div class="options" id="options-container"></div>
-            <div class="feedback-container" id="feedback"></div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="feedback-container" id="feedback"></div>
+        <div class="controls" id="controls">
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question &rarr;</button>
         </div>
     </div>
 
@@ -485,6 +513,7 @@
     let correctCount = 0;
     let incorrectCount = 0;
     let shuffledQuestions = [];
+    let isAnswered = false; // <-- ADD THIS LINE
 
     function shuffleArray(array) {
         let curId = array.length;
@@ -505,6 +534,7 @@
     }
 
     function loadQuestion() {
+        isAnswered = false;
         // Reset animation
         const animWrapper = document.getElementById('anim-wrapper');
         animWrapper.classList.remove('fade-enter');
@@ -537,8 +567,11 @@
     }
 
     function selectAnswer(event, selectedBtn, selectedIndex, correctIndex, feedbackText, shuffledOpts) {
+        
         const allBtns = document.querySelectorAll('.option-btn');
         allBtns.forEach(btn => btn.disabled = true); 
+
+        isAnswered = true; // <-- ADD THIS LINE
 
         // --- NEW RIPPLE ANIMATION LOGIC ---
         const container = document.getElementById('q-container');
@@ -615,6 +648,47 @@
         document.getElementById('final-score').innerText = correctCount;
         document.getElementById('final-wrong').innerText = incorrectCount;
     }
+
+    // --- KEYBOARD NAVIGATION LOGIC ---
+    document.addEventListener('keydown', (event) => {
+        // If the end screen is showing, Enter restarts the quiz
+        const endScreen = document.getElementById('end-screen');
+        if (endScreen.style.display === 'block') {
+            if (event.key === 'Enter') location.reload();
+            return;
+        }
+
+        const nextBtn = document.getElementById('next-btn');
+        const options = Array.from(document.querySelectorAll('.option-btn'));
+
+        if (event.key === 'Enter') {
+            // If answered, Enter moves to next question
+            if (isAnswered) {
+                event.preventDefault(); // Stop double-clicking
+                nextBtn.click();
+            }
+            // Note: If NOT answered, native HTML behavior automatically "clicks" the focused button on Enter!
+            
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            // If not answered, use arrow keys to navigate options
+            if (!isAnswered && options.length > 0) {
+                event.preventDefault(); // Prevent the window from scrolling
+                const currentIndex = options.indexOf(document.activeElement);
+                let nextIndex = 0;
+
+                if (event.key === 'ArrowDown') {
+                    // Go down, loop back to top if at bottom
+                    nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % options.length;
+                } else if (event.key === 'ArrowUp') {
+                    // Go up, loop back to bottom if at top
+                    nextIndex = currentIndex <= 0 ? options.length - 1 : currentIndex - 1;
+                }
+                
+                options[nextIndex].focus(); // Highlight the option
+            }
+        }
+    });
+    // ----------------------------------
 
     window.onload = initQuiz;
 </script>
