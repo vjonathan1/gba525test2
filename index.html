@@ -512,7 +512,7 @@
         animWrapper.classList.add('fade-enter');
 
         const qObj = shuffledQuestions[currentQIndex];
-        document.getElementById('question-text').innerText = `Question ${currentQIndex + 1}`;
+        document.getElementById('question-text').innerText = `Question ${currentQIndex + 1}: \n${qObj.q}`;
         
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.innerHTML = '';
