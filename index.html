@@ -5,6 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GBA 525 Test 2 Master Quiz - Animated</title>
 <style>
+    /* Update this existing class to add position and overflow */
+    .question-container {
+        padding: 30px;
+        overflow-y: auto;
+        overflow-x: hidden; /* Keep ripple from causing horizontal scroll */
+        flex-grow: 1;
+        position: relative; /* Crucial for trapping the ripple */
+    }
+
+    /* Make sure text stays above the colored background */
+    #anim-wrapper {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Add these entirely new classes for the ripple */
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple-expand 0.6s ease-out forwards;
+        pointer-events: none; /* Lets clicks pass through so it doesn't block UI */
+        z-index: 1;
+    }
+
+    @keyframes ripple-expand {
+        to {
+            transform: scale(40); /* Scales the tiny circle up massively */
+            opacity: 0; /* Fades out smoothly */
+        }
+    }
     @font-face {
             font-family: 'Moderat';
             src: url('Moderat-Regular.ttf') format('truetype');
@@ -481,7 +512,7 @@
         animWrapper.classList.add('fade-enter');
 
         const qObj = shuffledQuestions[currentQIndex];
-        document.getElementById('question-text').innerText = `Question ${currentQIndex + 1} of ${shuffledQuestions.length}: \n${qObj.q}`;
+        document.getElementById('question-text').innerText = `Question ${currentQIndex + 1}`;
         
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.innerHTML = '';
@@ -497,7 +528,7 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = optObj.text;
-            btn.onclick = () => selectAnswer(btn, optObj.originalIndex, qObj.a, qObj.feedback, shuffledOpts);
+            btn.onclick = (event) => selectAnswer(event, btn, optObj.originalIndex, qObj.a, qObj.feedback, shuffledOpts);
             optionsContainer.appendChild(btn);
         });
 
@@ -505,13 +536,43 @@
         document.getElementById('progress').style.width = progressPct + '%';
     }
 
-    function selectAnswer(selectedBtn, selectedIndex, correctIndex, feedbackText, shuffledOpts) {
+    function selectAnswer(event, selectedBtn, selectedIndex, correctIndex, feedbackText, shuffledOpts) {
         const allBtns = document.querySelectorAll('.option-btn');
         allBtns.forEach(btn => btn.disabled = true); 
 
+        // --- NEW RIPPLE ANIMATION LOGIC ---
+        const container = document.getElementById('q-container');
+        const ripple = document.createElement('div');
+        
+        // Check if correct to determine color (Green vs Red)
+        const isCorrect = (selectedIndex === correctIndex);
+        ripple.style.backgroundColor = isCorrect ? 'rgba(40, 167, 69, 0.3)' : 'rgba(220, 53, 69, 0.3)'; // Semi-transparent looks cleaner
+        
+        // Calculate exact click position relative to the container
+        const rect = container.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // Setup the ripple element
+        ripple.classList.add('ripple-effect');
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        ripple.style.width = '20px';
+        ripple.style.height = '20px';
+        ripple.style.marginLeft = '-10px'; // Centers the circle on the cursor
+        ripple.style.marginTop = '-10px';
+        
+        container.appendChild(ripple);
+        
+        // Remove the ripple from the DOM after animation finishes so they don't pile up
+        setTimeout(() => {
+            ripple.remove();
+        }, 600); 
+        // ----------------------------------
+
         const feedbackDiv = document.getElementById('feedback');
         
-        if (selectedIndex === correctIndex) {
+        if (isCorrect) {
             selectedBtn.classList.add('correct');
             correctCount++;
             document.getElementById('score-correct').innerText = correctCount;
