@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GBA 525 Test 2 Master Quiz</title>
+<title>GBA 525 Test 2 Master Quiz - Animated</title>
 <style>
     body {
         font-family: 'Moderat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -20,126 +20,184 @@
         width: 100%;
         max-width: 650px;
         border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         overflow: hidden;
         display: flex;
         flex-direction: column;
         max-height: 90vh;
+        position: relative;
     }
     .header {
         background: #002d72;
         color: white;
-        padding: 20px;
-        text-align: center;
+        padding: 25px 20px;
+        text-align: left;
         position: relative;
     }
-    .score-tracker {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-weight: bold;
-        background: rgba(255,255,255,0.2);
-        padding: 5px 10px;
-        border-radius: 8px;
+    .header h2 {
+        margin: 0;
+        font-size: 1.4em;
     }
+    .stats-tracker {
+        position: absolute;
+        top: 25px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        font-size: 0.9em;
+    }
+    .stat-badge {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        backdrop-filter: blur(5px);
+    }
+    .stat-correct { color: #a8e6cf; border: 1px solid rgba(168, 230, 207, 0.3); }
+    .stat-incorrect { color: #ffaaa5; border: 1px solid rgba(255, 170, 165, 0.3); }
+    
     .progress-bar {
-        height: 5px;
+        height: 6px;
         background: #ecf0f1;
     }
     .progress-fill {
         height: 100%;
         background: #3498db;
         width: 0%;
-        transition: width 0.3s;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .question-container {
         padding: 30px;
         overflow-y: auto;
+        flex-grow: 1;
+    }
+    .fade-enter {
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeInUp 0.5s forwards ease-out;
+    }
+    @keyframes fadeInUp {
+        to { opacity: 1; transform: translateY(0); }
     }
     .question-text {
         font-size: 1.2em;
         font-weight: bold;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         line-height: 1.4;
     }
     .options {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
     .option-btn {
         background: #f8f9fa;
         border: 2px solid #e9ecef;
-        padding: 12px 15px;
-        border-radius: 8px;
+        padding: 14px 18px;
+        border-radius: 10px;
         font-size: 1em;
         font-family: inherit;
         cursor: pointer;
         text-align: left;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
-    .option-btn:hover {
+    .option-btn:hover:not(:disabled) {
         background: #e2e6ea;
         border-color: #dae0e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     .option-btn.correct {
         background: #d4edda;
         border-color: #28a745;
         color: #155724;
+        animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .option-btn.incorrect {
         background: #f8d7da;
         border-color: #dc3545;
         color: #721c24;
+        animation: shake 0.4s ease-in-out;
+    }
+    @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
     }
     .option-btn:disabled {
         cursor: not-allowed;
+        opacity: 0.8;
     }
     .feedback-container {
-        margin-top: 20px;
-        padding: 15px;
-        border-radius: 8px;
+        margin-top: 25px;
+        padding: 18px;
+        border-radius: 10px;
         display: none;
         font-size: 0.95em;
         line-height: 1.5;
+        opacity: 0;
+        transform: scale(0.95);
+        transition: all 0.3s ease;
     }
     .feedback-container.show {
         display: block;
+        opacity: 1;
+        transform: scale(1);
     }
     .feedback-container.success {
         background: #e8f5e9;
         color: #2e7d32;
-        border-left: 4px solid #4caf50;
+        border-left: 5px solid #4caf50;
     }
     .feedback-container.error {
         background: #ffebee;
         color: #c62828;
-        border-left: 4px solid #ef5350;
+        border-left: 5px solid #ef5350;
     }
     .controls {
-        padding: 15px 30px;
-        background: #f1f4f6;
+        padding: 18px 30px;
+        background: #f8f9fa;
         text-align: right;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid #e9ecef;
     }
     .next-btn {
         background: #002d72;
         color: white;
         border: none;
-        padding: 10px 20px;
+        padding: 12px 24px;
         font-size: 1em;
         border-radius: 8px;
         cursor: pointer;
         font-family: inherit;
         display: none;
+        transition: background 0.2s, transform 0.1s;
     }
     .next-btn:hover {
         background: #001f50;
+        transform: translateY(-1px);
+    }
+    .next-btn:active {
+        transform: translateY(1px);
     }
     .end-screen {
         text-align: center;
-        padding: 40px 20px;
+        padding: 50px 30px;
         display: none;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .end-screen h2 {
+        color: #002d72;
+        font-size: 2em;
+        margin-bottom: 10px;
     }
 </style>
 </head>
@@ -147,21 +205,26 @@
 
 <div class="quiz-app">
     <div class="header" id="quiz-header">
-        <h2 style="margin:0;">GBA 525: Test 2 Master Quiz</h2>
-        <div class="score-tracker">Score: <span id="score-display">0</span></div>
+        <h2>GBA 525: Test 2</h2>
+        <div class="stats-tracker">
+            <div class="stat-badge stat-correct"><span id="score-correct">0</span> Right</div>
+            <div class="stat-badge stat-incorrect"><span id="score-incorrect">0</span> Wrong</div>
+        </div>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     
     <div class="question-container" id="q-container">
-        <div class="question-text" id="question-text">Loading question...</div>
-        <div class="options" id="options-container"></div>
-        <div class="feedback-container" id="feedback"></div>
+        <div id="anim-wrapper" class="fade-enter">
+            <div class="question-text" id="question-text">Loading question...</div>
+            <div class="options" id="options-container"></div>
+            <div class="feedback-container" id="feedback"></div>
+        </div>
     </div>
 
     <div class="end-screen" id="end-screen">
         <h2>Quiz Complete!</h2>
-        <p>Your final score is <strong id="final-score"></strong> out of <span id="total-qs"></span>.</p>
-        <button class="next-btn" style="display:inline-block; margin-top: 20px;" onclick="location.reload()">Start a New Round</button>
+        <p style="font-size: 1.2em;">You got <strong id="final-score" style="color:#28a745;"></strong> right and <strong id="final-wrong" style="color:#dc3545;"></strong> wrong out of <span id="total-qs"></span>.</p>
+        <button class="next-btn" style="display:inline-block; margin-top: 25px;" onclick="location.reload()">Start a New Round</button>
     </div>
 
     <div class="controls" id="controls">
@@ -171,7 +234,6 @@
 
 <script>
     const allQuestions = [
-        // CHAPTER 6: Business Strategy & Competitive Advantage
         { q: "What level of strategy determines a firm's strategic position in its quest for competitive advantage when competing in a single industry or product market?", options: ["Corporate Strategy", "Business-Level Strategy", "Functional Strategy", "Platform Strategy"], a: 1, feedback: "Business-level strategy focuses on how to compete in a single product market." },
         { q: "Strategic positioning requires managers to address strategic trade-offs that arise between what two factors?", options: ["Scale and Scope", "Value and Cost", "Differentiation and Innovation", "Tangible and Intangible Resources"], a: 1, feedback: "Strategic trade-offs arise between value and cost, because higher value tends to correspond with higher cost." },
         { q: "What is the primary goal of a differentiation strategy?", options: ["Decrease unit cost", "Increase perceived value so customers pay a higher price", "Match external producers and consumers", "Combine two independent firms"], a: 1, feedback: "The focus is on value-enhancing attributes and features to command a premium price." },
@@ -180,8 +242,6 @@
         { q: "Savings that come from producing two or more outputs at less cost than producing each output individually, despite using the same resources, are called:", options: ["Value Innovation", "Economies of Scale", "Economies of Scope", "Network Effects"], a: 2, feedback: "Economies of Scope involve leveraging resources across multiple products." },
         { q: "A business-level strategy that successfully combines differentiation and cost leadership activities using value innovation is called:", options: ["Platform Strategy", "Blue Ocean Strategy", "Taper Integration", "Architectural Innovation"], a: 1, feedback: "Blue Ocean Strategy reconciles the inherent trade-offs between differentiation and low cost." },
         { q: "What graphical depiction shows a company's relative performance against competitors across the industry's key success factors?", options: ["BCG Matrix", "Smile Strategy", "Strategy Canvas", "Four Actions Framework"], a: 2, feedback: "The Strategy Canvas visually maps out how a firm compares to its rivals on specific industry factors." },
-        
-        // CHAPTER 7: Innovation & Industry Life Cycle
         { q: "What are the five stages of the Industry Life Cycle?", options: ["Intro, Growth, Shakeout, Maturity, Decline", "Idea, Launch, Growth, Peak, Obsolescence", "Eliminate, Reduce, Raise, Create, Maintain", "Introduction, Chasm, Majority, Laggards, Decline"], a: 0, feedback: "The Industry Life Cycle consists of Introduction, Growth, Shakeout, Maturity, and Decline." },
         { q: "What term describes the process where legacy firms risk being destroyed by new creative entrants due to innovation?", options: ["Creative Destruction", "Crossing the Chasm", "Managerial Hubris", "Opportunism"], a: 0, feedback: "Creative destruction occurs as innovation takes place, forcing legacy firms to adapt or be destroyed." },
         { q: "A framework based on the idea that each segment of the industry life cycle is dominated by a different customer segment is called:", options: ["Build-Borrow-Buy", "Industry Life Cycle", "Crossing the Chasm", "Value Innovation"], a: 2, feedback: "Crossing the Chasm highlights the difficulty (the 'gulf') of moving from early adopters to the early majority." },
@@ -190,8 +250,6 @@
         { q: "Combining existing technologies with a new market is considered what type of innovation?", options: ["Radical", "Architectural", "Incremental", "Disruptive"], a: 1, feedback: "Architectural innovation reconfigures known components to create new markets." },
         { q: "Improving existing technologies in an existing market is considered what type of innovation?", options: ["Radical", "Architectural", "Incremental", "Disruptive"], a: 2, feedback: "Incremental innovation steadily improves an established product." },
         { q: "An enterprise that creates value by matching external producers and consumers via an infrastructure it manages is a:", options: ["Joint Venture", "Platform Business", "Taper Integration", "Strategic Alliance"], a: 1, feedback: "A Platform Business relies on network effects to bring producers and consumers together." },
-
-        // CHAPTER 8: Corporate Strategy
         { q: "Decisions leaders make in their quest for competitive advantage in several industries and markets simultaneously is called:", options: ["Business Strategy", "Corporate Strategy", "Functional Strategy", "Blue Ocean Strategy"], a: 1, feedback: "Corporate strategy involves deciding WHERE to compete across industries, value chains, and geographies." },
         { q: "A behavior characterized by self-interest seeking with guile, such as a 'hold up', is known as:", options: ["Managerial Hubris", "Asymmetrical Information", "Opportunism", "Path Dependence"], a: 2, feedback: "Opportunism occurs when one party withholds cooperation to gain bargaining power." },
         { q: "A situation in which one party possesses private information and is therefore more informed than another party is called:", options: ["Managerial Hubris", "Opportunism", "Asymmetrical Information", "Tacit Knowledge"], a: 2, feedback: "Asymmetrical information is common in transaction costs when one party has more data than the other." },
@@ -202,8 +260,6 @@
         { q: "In the BCG Matrix, what is a business unit with high relative market share but low market growth called?", options: ["Star", "Cash Cow", "Question Mark", "Dog"], a: 1, feedback: "A Cash Cow generates significant revenue that can be invested elsewhere." },
         { q: "In the BCG Matrix, what is a business unit with low relative market share but high market growth called?", options: ["Star", "Cash Cow", "Question Mark", "Dog"], a: 2, feedback: "A Question Mark requires significant cash to grow its low market share in a rapidly expanding industry." },
         { q: "In the BCG Matrix, what is a business unit with low relative market share and low market growth called?", options: ["Star", "Cash Cow", "Question Mark", "Dog"], a: 3, feedback: "A Dog typically does not generate much cash and may be divested." },
-
-        // CHAPTER 9: Alliances & Acquisitions
         { q: "What framework helps firms determine whether to pursue internal development, contractual agreements, or acquire new resources?", options: ["Four Actions Framework", "Build-Borrow-Buy", "SOAR Model", "BCG Matrix"], a: 1, feedback: "The Build-Borrow-Buy framework asks questions about Relevance, Tradability, Closeness, and Integration." },
         { q: "What treats decision making like stock options, breaking a larger decision into a set of smaller decisions over time?", options: ["Real-Options Perspective", "Build-Borrow-Buy Framework", "SOAR Model", "Platform Strategy"], a: 0, feedback: "The Real-Options Perspective gives the firm the right, but not the obligation, to continue making investments." },
         { q: "Voluntary arrangements between firms that involve the sharing of knowledge, resources, and capabilities are called:", options: ["Mergers", "Acquisitions", "Strategic Alliances", "Platform Businesses"], a: 2, feedback: "Strategic alliances include non-equity alliances, equity alliances, and joint ventures." },
@@ -211,8 +267,6 @@
         { q: "Knowledge that cannot be codified and concerns knowing 'how' to do a task through active participation is:", options: ["Asymmetrical Information", "Tacit Knowledge", "Explicit Knowledge", "Core Competency"], a: 1, feedback: "Tacit Knowledge requires strong ties, like an equity alliance or joint venture, to transfer effectively." },
         { q: "When managers convince themselves of their superior skills in the face of clear evidence to the contrary (often justifying bad M&As), it is called:", options: ["Confirmation Bias", "Opportunism", "Managerial Hubris", "The Ostrich Effect"], a: 2, feedback: "Managerial Hubris is a form of self-delusion where leaders believe they are the exception to the rule that M&As destroy value." },
         { q: "According to the textbook, what happens to shareholder value in the majority of Mergers and Acquisitions?", options: ["It drastically increases", "It is destroyed", "It remains completely neutral", "It only increases for the acquiring firm"], a: 1, feedback: "Most M&As destroy shareholder value, and any value created generally goes to the firm being taken over." },
-
-        // BLUE OCEAN SLIDES & VALUE ADDED
         { q: "In the Four Actions Framework, what factor asks which elements an industry takes for granted and should be dropped entirely?", options: ["Reduce", "Eliminate", "Raise", "Create"], a: 1, feedback: "Eliminate removes factors that no longer add value." },
         { q: "In the Four Actions Framework, what factor asks which elements should be lowered well below the industry standard?", options: ["Reduce", "Eliminate", "Raise", "Create"], a: 0, feedback: "Reduce lowers factors to save costs." },
         { q: "In the Four Actions Framework, what factor asks which elements should be elevated well above the industry standard?", options: ["Reduce", "Eliminate", "Raise", "Create"], a: 2, feedback: "Raise increases factors to boost buyer value." },
@@ -232,10 +286,10 @@
     ];
 
     let currentQIndex = 0;
-    let score = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
     let shuffledQuestions = [];
 
-    // Fisher-Yates shuffle
     function shuffleArray(array) {
         let curId = array.length;
         while (0 !== curId) {
@@ -249,23 +303,28 @@
     }
 
     function initQuiz() {
-        // Use all 45 questions, but randomize the order they appear
         shuffledQuestions = shuffleArray([...allQuestions]); 
         document.getElementById('total-qs').innerText = shuffledQuestions.length;
         loadQuestion();
     }
 
     function loadQuestion() {
+        // Reset animation
+        const animWrapper = document.getElementById('anim-wrapper');
+        animWrapper.classList.remove('fade-enter');
+        void animWrapper.offsetWidth; // trigger reflow
+        animWrapper.classList.add('fade-enter');
+
         const qObj = shuffledQuestions[currentQIndex];
         document.getElementById('question-text').innerText = `Question ${currentQIndex + 1} of ${shuffledQuestions.length}: \n${qObj.q}`;
         
         const optionsContainer = document.getElementById('options-container');
         optionsContainer.innerHTML = '';
         
-        document.getElementById('feedback').className = 'feedback-container';
+        const feedbackDiv = document.getElementById('feedback');
+        feedbackDiv.className = 'feedback-container';
         document.getElementById('next-btn').style.display = 'none';
 
-        // Track original index for grading while shuffling the buttons
         let optionsWithIndex = qObj.options.map((opt, i) => ({ text: opt, originalIndex: i }));
         let shuffledOpts = shuffleArray(optionsWithIndex);
 
@@ -283,19 +342,21 @@
 
     function selectAnswer(selectedBtn, selectedIndex, correctIndex, feedbackText, shuffledOpts) {
         const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(btn => btn.disabled = true); // Lock answers
+        allBtns.forEach(btn => btn.disabled = true); 
 
         const feedbackDiv = document.getElementById('feedback');
         
         if (selectedIndex === correctIndex) {
             selectedBtn.classList.add('correct');
-            score++;
-            document.getElementById('score-display').innerText = score;
+            correctCount++;
+            document.getElementById('score-correct').innerText = correctCount;
             feedbackDiv.innerHTML = `<strong>Correct!</strong> ${feedbackText}`;
             feedbackDiv.className = 'feedback-container show success';
         } else {
             selectedBtn.classList.add('incorrect');
-            // Find and highlight correct answer
+            incorrectCount++;
+            document.getElementById('score-incorrect').innerText = incorrectCount;
+            
             allBtns.forEach((btn, idx) => {
                 if(shuffledOpts[idx].originalIndex === correctIndex) {
                     btn.classList.add('correct');
@@ -325,7 +386,8 @@
         
         const endScreen = document.getElementById('end-screen');
         endScreen.style.display = 'block';
-        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-score').innerText = correctCount;
+        document.getElementById('final-wrong').innerText = incorrectCount;
     }
 
     window.onload = initQuiz;
